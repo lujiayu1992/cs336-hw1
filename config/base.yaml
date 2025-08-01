@@ -1,0 +1,36 @@
+model:
+  d_model: 256
+  num_heads: 8
+  d_ff: 1024
+  num_layers: 6
+  vocab_size: 50257
+  context_length: 128
+  rope_theta: 10000.0
+
+optimizer:
+  max_learning_rate: 0.001
+  min_learning_rate: 0.0001
+  warmup_iters: 100
+  cosine_iters: 10000
+  weight_decay: 0.01
+  max_l2_norm: 0.2
+
+training:
+  batch_size: 32
+  max_iters: 10000
+  log_every: 100
+  val_every: 1000
+  checkpoint_every: 100
+  checkpoint_path: "checkpoints/model.pt"
+  device: "auto"
+  wandb: true
+  wandb_project: "TinyStories"
+
+dataset:
+  train_id_path: "data/train_id.npy"
+  valid_id_path: "data/valid_id.npy"
+  train_path: "data/TinyStoriesV2-GPT4-train.txt"
+  valid_path: "data/TinyStoriesV2-GPT4-valid.txt"
+  vocab_out: "output/tinystories_vocab.pkl"
+  merges_out: "output/tinystories_merges.pkl"
+  special_tokens: ["<PAD>", "<UNK>", "<BOS>", "<EOS>", "<|endoftext|>"]
