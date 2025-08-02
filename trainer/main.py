@@ -8,6 +8,7 @@ from pathlib import Path
 from tqdm import tqdm
 from bpe.tokenizer import Tokenizer
 import os
+from .experiment_log import ExperimentLogger
 
 # --- Block 1: Import Your Custom Modules ---
 # Import all the components you've built in the previous sections.
@@ -63,7 +64,8 @@ def main():
     print("Setting up training...")
 
     # 1. Load the YAML config file into a dictionary.
-    config = load_config("config/base.yaml")
+    config = load_config("config/lr_exp_baseline.yaml")
+    experiment_logger = ExperimentLogger(config=config)
     # 2. Set up your device ('cuda', 'cpu', etc.).
 
     device = torch.device(detect_device())
@@ -106,9 +108,7 @@ def main():
     train_data = np.memmap(
         config["dataset"]["train_id_path"], dtype=np.uint16, mode="r"
     )
-    val_data = np.memmap(
-        config["dataset"]["valid_id_path"], dtype=np.uint16, mode="r"
-    )
+    val_data = np.memmap(config["dataset"]["valid_id_path"], dtype=np.uint16, mode="r")
 
     # --- Part C: Model and Optimizer Initialization ---
     print("Initializing model and optimizer...")
@@ -123,13 +123,14 @@ def main():
         num_layers=config["model"]["num_layers"],
         rope_theta=config["model"]["rope_theta"],
         device=device,
-    )#.to(device)
+    )  # .to(device)
 
     # 2. Create an instance of your AdamW optimizer, passing it the model's parameters.
     optimizer = AdamW(
         params=model.parameters(),
         lr=float(config["optimizer"]["max_learning_rate"]),
         weight_decay=float(config["optimizer"]["weight_decay"]),
+        betas=tuple(config['optimizer'].get('betas', (0.9, 0.95)))
     )
 
     # 3. (Optional) Add logic to load a checkpoint if you are resuming training.
@@ -178,7 +179,7 @@ def main():
 
         # Periodically log your training loss and learning rate.
         if wandb_flag:
-            wandb.log({"train/loss": loss.item(), "train/lr": lr, "step": it})
+            experiment_logger.log_loss(step=it, loss=loss, lr=lr, is_train=True)
         if it % config["training"]["log_every"] == 0:
             print(f"Step {it}: loss = {loss.item():.4f}, lr = {lr:.6f}")
 
@@ -196,19 +197,22 @@ def main():
                 )
                 logits_val = model(x_val)
                 loss_val = cross_entropy(logits_val, y_val)
-                if wandb_flag:
-                    wandb.log({"val/loss": loss_val.item(), "step": it})
+                experiment_logger.log_loss(
+                    step=it, loss=loss_val, lr=lr, is_train=False
+                )
                 print(f"[Validation] Step {it}: val_loss = {loss_val.item():.4f}")
             model.train()
 
         # Periodically save a checkpoint.
         if it > 0 and it % config["training"]["checkpoint_every"] == 0:
+            checkpoint_path = Path(config["training"]["checkpoint_path"])
+            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
             # Your logic to call save_checkpoint() goes here.
             save_checkpoint(
                 model=model,
                 optimizer=optimizer,
                 iteration=it,
-                out=config["training"]["checkpoint_path"],
+                out=str(checkpoint_path),
             )
 
     print("Training finished.")
