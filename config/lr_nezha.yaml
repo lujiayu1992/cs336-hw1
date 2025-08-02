@@ -1,31 +1,33 @@
+# tiny story val loss at 1.4
 model:
-  d_model: 256
-  num_heads: 8
-  d_ff: 1024
-  num_layers: 6
-  vocab_size: 50257
-  context_length: 128
+  d_model: 512
+  num_heads: 16
+  d_ff: 1344
+  num_layers: 4
+  vocab_size: 10000
+  context_length: 256
   rope_theta: 10000.0
 
 optimizer:
-  max_learning_rate: 0.001
-  min_learning_rate: 0.0001
+  max_learning_rate: 0.0015 #ne zha
+  min_learning_rate: 0.0003
   warmup_iters: 100
-  cosine_iters: 10000
+  cosine_iters: 20000
   weight_decay: 0.01
   max_l2_norm: 0.2
+  betas: [0.9, 0.95] # not great for loss
 
 training:
   batch_size: 32
-  max_iters: 10000
-  log_every: 100
-  val_every: 1000
-  checkpoint_every: 100
-  checkpoint_path: "checkpoints/exp_run/model.pt"
+  max_iters: 20000
+  log_every: 500
+  val_every: 500
+  checkpoint_every: 500
+  checkpoint_path: "checkpoints/exp_run/lr_baseline_model.pt"
   device: "auto"
   wandb: true
-  wandb_project: "exp"
-  wandb_run: "exp_run"
+  wandb_project: "experiment"
+  wandb_run: "lr_extended"
 
 dataset:
   train_id_path: "data/train_id.npy"
