@@ -34,3 +34,10 @@ dataset:
   vocab_out: "output/tinystories_vocab.pkl"
   merges_out: "output/tinystories_merges.pkl"
   special_tokens: ["<PAD>", "<UNK>", "<BOS>", "<EOS>", "<|endoftext|>"]
+
+generation:
+  checkpoint_path: "checkpoints/model.pt" # New: Specific checkpoint to load for generation
+  prompt: "Once upon a time, in a land full of candy," # New: Default prompt for generation
+  max_new_tokens: 150 # New: Default length of generated text
+  temperature: 0.8 # New: Sampling temperature
+  top_k: 200 # New: Top-k sampling
