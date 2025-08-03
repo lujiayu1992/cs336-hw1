@@ -64,7 +64,7 @@ def main():
     print("Setting up training...")
 
     # 1. Load the YAML config file into a dictionary.
-    config = load_config("config/lr_exp_baseline.yaml")
+    config = load_config("config/lr_nezha.yaml")
     experiment_logger = ExperimentLogger(config=config)
     # 2. Set up your device ('cuda', 'cpu', etc.).
 
@@ -130,7 +130,7 @@ def main():
         params=model.parameters(),
         lr=float(config["optimizer"]["max_learning_rate"]),
         weight_decay=float(config["optimizer"]["weight_decay"]),
-        betas=tuple(config['optimizer'].get('betas', (0.9, 0.95)))
+        betas=tuple(config["optimizer"].get("betas", (0.9, 0.999))),
     )
 
     # 3. (Optional) Add logic to load a checkpoint if you are resuming training.
@@ -138,7 +138,7 @@ def main():
     # --- Part D: The Main Training Loop ---
     print("Starting training...")
     # Loop from 0 to the max_iters specified in your config.
-    for it in tqdm(range(config["training"]["max_iters"])):
+    for it in tqdm(range(config["training"]["max_iters"] + 1)):
 
         # 1. Get a batch of data using your get_batch function.
         x, y = get_batch(
